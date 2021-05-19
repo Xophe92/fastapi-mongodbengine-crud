@@ -8,7 +8,7 @@
 * lancer l'api ```uvicorn main:app --reload```
 
 ## tester la solution
-C'est un CRUD, sans le "U" actuellement.
+C'est un CRUD.
 
 Une documentation [swagger](http://localhost:8000/docs) est automatiquement générée.
 

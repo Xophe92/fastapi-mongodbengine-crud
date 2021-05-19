@@ -13,6 +13,29 @@ from mongoengine import StringField, FloatField, EmbeddedDocumentField
 
 from bson.objectid import ObjectId
 
+EXAMPLES = {
+        "normal" : {
+            "summary" : "Base case",
+            "description" : "The base case scenario with embedded object",
+            "value": {
+                "name" : "Christophe",
+                "price" : 2048, 
+                "tax" : {
+                    "name" : "TVA",
+                    "rate" : 19.6
+                }
+            }
+        },
+
+        "expensive" : {
+            "summary" : "Expensive case",
+            "description" : "An alternative scenario",
+            "value": {
+                "name" : "Christophe",
+                "price" : 4096
+            }
+        }
+    }
 
 class PydanticObjectId(ObjectId):
     @classmethod
@@ -39,7 +62,6 @@ class TaxDB(EmbeddedDocument):
     name = StringField(required=True)
     rate = FloatField(required=True)
 
-
 class Item(BaseModel):
     id: Optional[PydanticObjectId] = None
     name: str
@@ -53,7 +75,6 @@ class Item(BaseModel):
             ObjectId: str
         }            
 
-
 class ItemDB(Document):
     name = StringField(required=True)
     description = StringField(max_length=50)
@@ -64,7 +85,7 @@ class ItemDB(Document):
 
 app = FastAPI()
 connect("fast-api-mongodb")
-ItemDB.objects().delete()
+#ItemDB.objects().delete()
 
 
 @app.get("/items/", response_model=List[Item], tags=["utile"], status_code=status.HTTP_200_OK) 
@@ -75,29 +96,7 @@ def list_items():
 @app.post("/items/", response_model=Item, tags=["utile"], status_code=status.HTTP_201_CREATED) 
 async def create_item(item: Item = Body(
     ...,
-    examples = {
-        "normal" : {
-            "summary" : "Base case",
-            "description" : "The base case scenario with embedded object",
-            "value": {
-                "name" : "Christophe",
-                "price" : 2048, 
-                "tax" : {
-                    "name" : "TVA",
-                    "rate" : 19.6
-                }
-            }
-        },
-
-        "expensive" : {
-            "summary" : "Expensive case",
-            "description" : "An alternative scenario",
-            "value": {
-                "name" : "Christophe",
-                "price" : 4096
-            }
-        }
-    }
+    examples = EXAMPLES
 )) -> Item:
     """ Add a new item in the database.
     """
@@ -115,6 +114,23 @@ def delete_items(id: str):
     return item_deleted
 
 
+@app.put("/items/{id}", response_model=Item, tags=["utile"], status_code=status.HTTP_202_ACCEPTED) 
+async def update_item(id : str, item: Item = Body(
+    ...,
+    examples = EXAMPLES
+)) -> Item:
+    """ Add a new item in the database.
+    """
+    found_db_item = ItemDB.objects(id=id).first()
+    to_be_replaced_with = ItemDB(**item.dict())
+
+    for key in item.dict().keys():
+        if key == "id": 
+            continue
+        setattr(found_db_item, key, getattr(to_be_replaced_with, key, None))
+    
+    found_db_item.save()
+    return Item.from_orm(found_db_item)
 
 @app.get("/user-agent/", tags=["inutile"])
 async def read_user_agent(user_agent: Optional[str] = Header(None)):
