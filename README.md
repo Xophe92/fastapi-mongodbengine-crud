@@ -2,6 +2,16 @@
 
 ## Installation & lancement
 * Installer localement mongodb
-* environnement ```python3 -m virtualenv env```, ```. env/bin/activate``` ou ```env\Script\activatebat``` et ```pip install -r requirements.txt```
-* lancer ```uvicorn main:app --reload```
+* création d'un environnement ```python3 -m virtualenv env```
+* activation ```. env/bin/activate``` ou ```env\Script\activatebat``` 
+* installation des dépendances ```pip install -r requirements.txt```
+* lancer l'api ```uvicorn main:app --reload```
+
+## tester la solution
+C'est un CRUD, sans le "U" actuellement.
+
+Une documentation [swagger](http://localhost:8000/docs) est automatiquement générée.
+
+Je recherche actuellement comment éviter les redondances entre les modèles (mongodbengine) et les types (pydantics).
+
 
